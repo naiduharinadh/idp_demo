@@ -26,7 +26,7 @@ const userschema = mongoose.Schema({
 const user= mongoose.model("user" , userschema);
 
 app.get("/",(req,resp)=>{
-	resp.render("form",{msg:"this is from the k8s cluster"})
+	resp.render("form",{msg:"this is from the k8s cluster--- modified line to detect the jenkins"})
 })
 
 app.get("/submit",(req,resp)=>{
