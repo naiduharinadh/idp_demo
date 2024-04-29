@@ -1,33 +1,33 @@
-const chai = require('chai');
-const expect = chai.expect;
+const assert = require('assert');
 const request = require('supertest');
-const app = require('./server.js'); // Assuming your Express app is in app.js
+const app = require('./server.js'); // Assuming your Express app is in server.js
 
-describe('Sample Web App Tests', () => {
-  it('should render form page correctly', (done) => {
+describe('Express App Tests', () => {
+  it('should render the form page correctly', (done) => {
     request(app)
       .get('/')
       .expect(200)
       .end((err, res) => {
-        expect(res.text).to.contain('form');
+        if (err) return done(err);
+        assert.strictEqual(res.text.includes('this is from the k8s cluster--- modified line to detect the jenkins'), true);
         done();
       });
   });
 
   it('should submit data successfully', (done) => {
-    const data = {
-      name: 'Test User'
-    };
+    const testName = 'Test User';
 
     request(app)
       .get('/submit')
-      .query(data)
+      .query({ name: testName })
       .expect(200)
       .end((err, res) => {
-        expect(res.text).to.contain('data submitted successfully');
+        if (err) return done(err);
+        assert.strictEqual(res.text.includes('data submitted successfully'), true);
         done();
       });
   });
 
-  // Add more test cases as needed
+
+
 });
