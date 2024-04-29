@@ -9,10 +9,12 @@ app.set("view engine" , "ejs");
 
 //mongodb-service is the POD service name given - to launch the shard clusters 
 const uri = "mongodb://mongodb-service/k8scluster";
+/*
 mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log("Connected to MongoDB"))
   .catch(err => console.error("Error connecting to MongoDB:", err));
-
+*/
+mongoose.connect("mongodb+srv://harinadh14:N%40dh2306@atlascluster.9fb52n9.mongodb.net/pipeDatabase");
 
 //this is for general use and atlas connection string.
 //mongoose.connect("mongodb+srv://harinadh14:N%40dh2306@atlascluster.9fb52n9.mongodb.net/k8scluster");
