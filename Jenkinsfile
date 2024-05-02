@@ -1,6 +1,7 @@
 pipeline {
     agent {
         label 'redhatslave1'
+        //commit line 2 new line
     }
     environment {
         DOCKER_REGISTRY = 'your-docker-registry'
