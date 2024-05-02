@@ -1,41 +1,53 @@
 pipeline {
     agent {
-        label 'redhatslave1'
-        //commit line 2 new line
-        //commit line3 for build checkup 
+        label 'builtInNode'
     }
-    environment {
-        DOCKER_REGISTRY = 'your-docker-registry'
-        IMAGE_TAG = "${env.BUILD_NUMBER}" // You can use Jenkins build number as the image tag
-    }
+
     stages {
-        stage('Checkout') {
+        stage('checkout git and Dockerfile build ') {
             steps {
-                git 'https://github.com/your-username/your-repo.git'
+                git branch: 'main', url: 'https://github.com/naiduharinadh/sample_node.git'
+                sh 'sudo sed -i \'/RUN npm install/i\\RUN git pull https://github.com/naiduharinadh/sample_node.git\' Dockerfile'
             }
         }
-        stage('Build') {
-            steps {
+        
+        
+        stage("docker login"){
+            steps{
                 script {
-                    // Build Docker image
-                    docker.build("${DOCKER_REGISTRY}/your-app:${IMAGE_TAG}")
+                    sh 'sudo echo N@dh23006 | sudo docker login -u harinadh14 --password-stdin'
                 }
             }
         }
-        stage('Push') {
-            steps {
+        
+        
+        stage("build - with out entry point added "){
+            steps{
                 script {
-                    // Push Docker image to registry
-                    docker.withRegistry('https://${DOCKER_REGISTRY}', 'docker-registry-credentials') {
-                        docker.image("${DOCKER_REGISTRY}/your-app:${IMAGE_TAG}").push()
-                    }
+                    def imageName = "userlogapp2"
+                    sh 'sudo docker build --build-arg CACHEBUST=$(date +%s) -t userlogapp2 .'
+                    sh "sudo docker tag userlogapp2 harinadh14/userlogapp1:latest"
                 }
             }
         }
-        stage('Deploy') {
-            steps {
-                // Deploy the Docker image to Kubernetes cluster
-                // You can use kubectl or any Kubernetes deployment tool here
+        stage("testing by MOCHA"){
+            steps{
+                script {
+                    
+                    sh "sudo docker run -dit --name testContainer1 userlogapp2"
+                    sh "sudo docker exec  testContainer1 npm install -g mocha"
+                    sh "sudo docker exec  testContainer1 mocha --exit server.test.js"
+                }
+            }
+        }
+        stage("build - ENTRYPOINT as npm start  "){
+            steps{
+                script {
+                    sh 'sudo sed -i \'$i\\ENTRYPOINT ["npm", "start"]\'  Dockerfile'
+                    sh 'sudo docker build --build-arg CACHEBUST=$(date +%s) -t userlogapp2 .'
+                    sh 'sudo docker tag userlogapp2  harinadh14/userlogapp1:latest'
+                    sh 'sudo docker push harinadh14/userlogapp1:latest'
+                }
             }
         }
     }
