@@ -41,3 +41,4 @@ app.get("/submit",(req,resp)=>{
 })
 
 app.listen(4623, "0.0.0.0", (resp) => {console.log("server started in 4623")})
+module.exports = app;
