@@ -34,7 +34,7 @@ app.get("/submit",(req,resp)=>{
 			  name:req.query.name,
 		  })
 	let k = u.save();
-	if(k){ resp.send("data submitted successfully ")  }
+	if(k){ resp.send("data submitted successfully")  }
 	else{
 		resp.send("please reenter the data , above given is not saved yet");
 	}
