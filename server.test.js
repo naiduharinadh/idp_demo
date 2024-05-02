@@ -1,33 +1,28 @@
-const assert = require('assert');
-const request = require('supertest');
-const app = require('./server.js'); // Assuming your Express app is in server.js
+const chai = require("chai");
+const chaiHttp = require("chai-http");
+const app = require("./server"); // Assuming your Express app is in server.js
+const expect = chai.expect;
 
-describe('Express App Tests', () => {
-  it('should render the form page correctly', (done) => {
-    request(app)
-      .get('/')
-      .expect(200)
-      .end((err, res) => {
-        if (err) return done(err);
-        assert.strictEqual(res.text.includes('this is from the k8s cluster--- modified line to detect the jenkins'), true);
-        done();
-      });
-  });
+chai.use(chaiHttp);
 
-  it('should submit data successfully', (done) => {
-    const testName = 'Test User';
+describe("Express App", function() {
+    it("should render the form page correctly", function(done) {
+        chai.request(app)
+            .get("/")
+            .end(function(err, res) {
+                expect(res).to.have.status(200);
+                expect(res.text).to.contain("this is from the k8s cluster--- modified line to detect the jenkins");
+                done();
+            });
+    });
 
-    request(app)
-      .get('/submit')
-      .query({ name: testName })
-      .expect(200)
-      .end((err, res) => {
-        if (err) return done(err);
-        assert.strictEqual(res.text.includes('data submitted successfully'), true);
-        done();
-      });
-  });
-
-
-
+    it("should submit data successfully", function(done) {
+        chai.request(app)
+            .get("/submit?name=test")
+            .end(function(err, res) {
+                expect(res).to.have.status(200);
+                expect(res.text).to.equal("data submitted successfully");
+                done();
+            });
+    });
 });
