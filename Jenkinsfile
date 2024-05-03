@@ -51,4 +51,20 @@ pipeline {
             }
         }
     }
+// post build actions 
+        post{
+
+        failure{
+
+            build job: 'post -build-project-sample-2', waitForStart: true
+        }
+
+
+
+        sucess{
+            build job: 'post -build-project-sample-1', waitForStart: true
+        }
+
+
+    }
 }
