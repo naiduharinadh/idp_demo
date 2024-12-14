@@ -5,22 +5,25 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "start": "nodemon server.js"
   },
   "author": "harinadh",
   "license": "ISC",
   "dependencies": {
     "assert": "^2.1.0",
-    "chai": "^5.1.0",
-    "ejs": "^3.1.9",
-    "express": "^4.18.3",
+    "chai": "^4.4.1",
+    "chai-http": "^4.4.0",
+    "ejs": "^3.1.10",
+    "express": "^4.21.1",
+    "express-oauth2-jwt-bearer": "^1.6.0",
+    "express-session": "^1.18.1",
     "forever": "^4.0.3",
+    "mocha": "^10.4.0",
     "mongoose": "^8.2.2",
     "multer": "^1.4.5-lts.1",
+    "nodemon": "^3.1.9",
+    "openid-client": "^5.7.0",
     "supertest": "^7.0.0",
-    "views": "^1.0.2" ,
-    "mocha": "^10.4.0",
-    "chai": "^4.4.1",
-    "chai-http": "^4.4.0"
+    "views": "^1.0.2"
   }
 }
