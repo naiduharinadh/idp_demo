@@ -1,35 +1,33 @@
-Configure openid-client with values for the OIDC properties of your user pool.
-
-
 const express = require('express');
 const session = require('express-session');
 const { Issuer, generators } = require('openid-client');
 const app = express();
-      
-let client;
-// Initialize OpenID Client
-async function initializeClient() {
-    const issuer = await Issuer.discover('https://cognito-idp.us-east-1.amazonaws.com/us-east-1_S7mzuryvG');
-    client = new issuer.Client({
-        client_id: 'qd9ls1r6dde9413898tkhfuk9',
-        client_secret: 'a12n1g23540gjuq2a3slrtb5bl9100hr0cu91vs7msmc08ot2ja',
-        redirect_uris: ['https://test-alb-338543412.us-east-1.elb.amazonaws.com/oauth2/idpresponse'],
-        response_types: ['code']
-    });
-};
-initializeClient().catch(console.error);
-6
-Configure the session middleware.
 
+// ================== Step 1: Initialize OpenID Client ====================
+
+// Initialize OpenID Client
+let client;
+
+async function initializeClient() {
+    const issuer = await Issuer.discover('https://cognito-idp.us-east-1.amazonaws.com/us-east-1_S7mzuryvG'); // Discover Cognito's Issuer
+    client = new issuer.Client({
+        client_id: 'qd9ls1r6dde9413898tkhfuk9', // Your Cognito App client ID
+        client_secret: 'a12n1g23540gjuq2a3slrtb5bl9100hr0cu91vs7msmc08ot2ja', // Your Cognito App client secret
+        redirect_uris: ['https://test-alb-338543412.us-east-1.elb.amazonaws.com/oauth2/idpresponse'], // Cognito will redirect here after login
+        response_types: ['code'], // OAuth2 Authorization Code flow
+    });
+}
+initializeClient().catch(console.error);
+
+// ================== Step 2: Configure Session Middleware ====================
 
 app.use(session({
-    secret: 'some secret',
-    resave: false,
-    saveUninitialized: false
+    secret: 'some secret', // Secret used to sign the session ID cookie
+    resave: false, // Do not resave the session if unmodified
+    saveUninitialized: false // Do not create a session until something is stored
 }));
-7
-Add a middleware component that checks if a user is authenticated.
 
+// ================== Step 3: Middleware to Check Authentication ====================
 
 const checkAuth = (req, res, next) => {
     if (!req.session.userInfo) {
@@ -39,9 +37,8 @@ const checkAuth = (req, res, next) => {
     }
     next();
 };
-8
-Configure a home route at the root of your application. Include a check for users’ authenticated state.
 
+// ================== Step 4: Home Route with Authentication Check ====================
 
 app.get('/', checkAuth, (req, res) => {
     res.render('home', {
@@ -49,9 +46,8 @@ app.get('/', checkAuth, (req, res) => {
         userInfo: req.session.userInfo
     });
 });
-9
-Configure a login route to direct to Amazon Cognito managed login for authentication with your authorization endpoint.
 
+// ================== Step 5: Login Route to Redirect to Cognito ====================
 
 app.get('/login', (req, res) => {
     const nonce = generators.nonce();
@@ -60,19 +56,19 @@ app.get('/login', (req, res) => {
     req.session.nonce = nonce;
     req.session.state = state;
 
+    // Create the Cognito authorization URL
     const authUrl = client.authorizationUrl({
-        scope: 'email openid profile',
+        scope: 'email openid profile', // Scopes requested from Cognito
         state: state,
         nonce: nonce,
     });
 
+    // Redirect to Cognito's login page
     res.redirect(authUrl);
 });
-10
-Configure the page for the return URL that Amazon Cognito redirects to after authentication.
 
+// ================== Step 6: Callback URL that Cognito Redirects to after Authentication ====================
 
-// Helper function to get the path from the URL. Example: "http://localhost/hello" returns "/hello"
 function getPathFromURL(urlString) {
     try {
         const url = new URL(urlString);
@@ -85,6 +81,7 @@ function getPathFromURL(urlString) {
 
 app.get(getPathFromURL('https://test-alb-338543412.us-east-1.elb.amazonaws.com/oauth2/idpresponse'), async (req, res) => {
     try {
+        // Handle callback from Cognito after authentication
         const params = client.callbackParams(req);
         const tokenSet = await client.callback(
             'https://test-alb-338543412.us-east-1.elb.amazonaws.com/oauth2/idpresponse',
@@ -95,6 +92,7 @@ app.get(getPathFromURL('https://test-alb-338543412.us-east-1.elb.amazonaws.com/o
             }
         );
 
+        // Get user info after successful authentication
         const userInfo = await client.userinfo(tokenSet.access_token);
         req.session.userInfo = userInfo;
 
@@ -104,21 +102,30 @@ app.get(getPathFromURL('https://test-alb-338543412.us-east-1.elb.amazonaws.com/o
         res.redirect('/');
     }
 });
-11
-Configure a logout route that erases user session data and redirects to the Amazon Cognito logout endpoint.
 
+// ================== Step 7: Logout Route to Clear Session ====================
 
 // Logout route
 app.get('/logout', (req, res) => {
-    req.session.destroy();
-    const logoutUrl = `https://us-east-1s7mzuryvg.auth.us-east-1.amazoncognito.com/logout?client_id=qd9ls1r6dde9413898tkhfuk9&logout_uri=https://test-alb-338543412.us-east-1.elb.amazonaws.com/cognito`;
+    req.session.destroy(); // Clear the session
+    // Redirect to Cognito's logout endpoint
+    const logoutUrl = `https://us-east-1_s7mzuryvg.auth.us-east-1.amazoncognito.com/logout?client_id=qd9ls1r6dde9413898tkhfuk9&logout_uri=https://test-alb-338543412.us-east-1.elb.amazonaws.com/cognito`;
     res.redirect(logoutUrl);
 });
-12
-Configure the home page with a sign-in link that directs to the login route and a sign-out link that directs to the logout route.
 
+// ================== Step 8: Configure Home Page with Sign-In and Sign-Out Links ====================
 
-<!-- views/home.ejs -->
+// views/home.ejs
+app.set('view engine', 'ejs'); // Set the view engine to EJS
+
+// Start the server and listen for incoming requests
+app.listen(80, '0.0.0.0', () => {
+    console.log("Server started on port 80");
+});
+
+// ================== Step 9: EJS Template for Home Page (views/home.ejs) ====================
+
+/*
 <!DOCTYPE html>
 <html>
 <head>
@@ -142,8 +149,6 @@ Configure the home page with a sign-in link that directs to the login route and 
 </div>
 </body>
 </html>
-13
-Configure the Node view engine.
+*/
 
-
-app.set('view engine', 'ejs');
+module.exports = app;
